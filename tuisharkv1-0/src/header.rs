@@ -1,15 +1,42 @@
 use crate::packet::{OperacionArp::self, Paquete, PaqueteArp, PaqueteUdp, PaqueteIcmp, PaqueteTcp, TipoPaquete};
 
+pub struct Cabecera {
+    pub titulo : String,
+    pub campos : Vec<String>,
+    pub desplegada : bool,
+}
+
+impl Cabecera {
+    fn new(paquete : &Paquete)  -> Cabecera{
+        let titulo: String = Self::construir_titulo_cabecera(paquete);
+        let campos : Vec<String> = Self::construir_campos_cabecera(paquete);
+        Cabecera {
+            titulo : titulo,
+            campos : campos,
+            desplegada : false,
+        }
+    }
+
+    fn construir_titulo_cabecera(paquete: &Paquete) -> String {
+        format!("Frame {}: Packet, {} bytes on wire ({} bits), {} bytes captured ({} bits)", paquete.num, paquete.length, paquete.length*8, paquete.length, paquete.length*8)
+    }
+
+    fn construir_campos_cabecera(paquete: &Paquete) -> Vec<String> {
+
+    }
+}
+
 pub struct Cabeceras{
-    pub elementos : Vec<String>,
+    pub elementos : Vec<Cabecera>,
 }
 
 impl Cabeceras {
     pub fn new(paquete: &Paquete) -> Cabeceras{
-        let mut elementos :Vec<String> = Vec::new();
-        let numero_paquete = &paquete.num;
-        let longitud_paquete = &paquete.length;
-        elementos.push(format!("Frame {}: Packet, {} bytes on wire ({} bits), {} bytes captured ({} bits)", numero_paquete, longitud_paquete, longitud_paquete*8, longitud_paquete, longitud_paquete*8));
+        let mut elementos :Vec<Cabecera> = Vec::new();
+        let numero_paquete: &String = &paquete.num;
+        let longitud_paquete: &usize = &paquete.length;
+        let cabecera_frame: Cabecera = Cabecera::new(paquete);
+        elementos.push(cabecera_frame);
         match &paquete.tipo {
             TipoPaquete::Arp(datos_arp) => {
                 Self::construir_cabecera_arp(paquete, &mut elementos, datos_arp);
