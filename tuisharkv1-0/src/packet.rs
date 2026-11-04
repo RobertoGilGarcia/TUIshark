@@ -17,8 +17,6 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
-
 use pnet::packet::arp::ArpPacket;
 use pnet::packet::arp::ArpOperations;
 use pnet::packet::ethernet::{EtherTypes, EthernetPacket};
@@ -105,7 +103,7 @@ pub struct Paquete {
     pub info : String,
 
     pub ethernet: PaqueteEthernet,
-    pub ipv4: Option<PaqueteIpv4>,
+    pub ipv4: Option<PaqueteIpv4>, //option debido a que puede o no trabajar con IP, ARP sería None.
     pub tipo : TipoPaquete,
 }
 
@@ -241,10 +239,10 @@ impl Paquete {
         };
         let info = match paquete_arp.get_operation() {
             ArpOperations::Request => {
-                format!("Who has {}? Tell {}", paquete_arp.get_target_proto_addr(), paquete_arp.get_sender_proto_addr())
+                format!("Who has {}? Tell {}", datos_arp.target_ip, datos_arp.sender_ip)
             }
             ArpOperations::Reply => {
-                format!("{} is at {}", paquete_arp.get_sender_proto_addr(), paquete_arp.get_sender_hw_addr())
+                format!("{} is at {}", datos_arp.sender_ip, datos_arp.sender_mac)
             }
             _ => {return (TipoPaquete::Arp(datos_arp), "Unknown ARP Operation".to_string());}
         };
