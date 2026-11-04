@@ -14,6 +14,12 @@
 ///  Funciona igual en los protocolos ICMP, UDP, TCP y ARP, todos se construyen en cascada, pero al final, tenemos un Paquete, el cual tiene
 ///  campos comunes y el campo tipo, que es un tipo de paquete específico de cada protocolo
 /// 
+/// 
+/// 
+/// 
+/// 
+/// 
+/// 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
