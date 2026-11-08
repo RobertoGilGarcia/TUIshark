@@ -67,7 +67,7 @@ pub struct PaqueteArp {
 pub struct PaqueteTcp {
     pub source_port : u16,
     pub destination_port : u16,
-    pub flags : String,
+    pub flags : Vec<String>,
     pub sequence : u32,
 }
 
@@ -146,7 +146,7 @@ impl Paquete {
                     }
                     IpNextHeaderProtocols::Tcp => {
                         let paquete_tcp: PaqueteTcp = Self::construir_paquete_tcp(&paquete_ipv4);
-                        let info: String = format!("{} -> {} [{}] Seq={}", paquete_tcp.source_port, paquete_tcp.destination_port, paquete_tcp.flags.trim(), paquete_tcp.sequence);
+                        let info: String = format!("{} -> {} [{}] Seq={}", paquete_tcp.source_port, paquete_tcp.destination_port, paquete_tcp.flags.join(", "), paquete_tcp.sequence);
                         (TipoPaquete::Tcp(paquete_tcp), "TCP".to_string(), info, info_ipv4)
                     }
                     IpNextHeaderProtocols::Udp => {
@@ -186,25 +186,25 @@ impl Paquete {
 
     fn construir_paquete_tcp(paquete_ipv4: &Ipv4Packet) -> PaqueteTcp {
         let paquete_tcp :TcpPacket = TcpPacket::new(paquete_ipv4.payload()).unwrap();
-        let mut flags = String::from("");
+        let mut flags: Vec<String> = Vec::new();
         let flag = paquete_tcp.get_flags();
         if (flag & TcpFlags::URG) != 0 {
-            flags.push_str(" URG");
+            flags.push("URG".to_string());
         }
         if (flag & TcpFlags::ACK) != 0 {
-            flags.push_str(" ACK");
+            flags.push("ACK".to_string());
         }
         if (flag & TcpFlags::PSH) != 0 {
-            flags.push_str(" PSH");
+            flags.push("PSH".to_string());
         }
         if (flag & TcpFlags::RST) != 0 {
-            flags.push_str(" RST");
+            flags.push("RST".to_string());
         }
         if (flag & TcpFlags::SYN) != 0 {
-            flags.push_str(" SYN");
+            flags.push("SYN".to_string());
         }
         if (flag & TcpFlags::FIN) != 0 {
-            flags.push_str(" FIN");
+            flags.push("FIN".to_string());
         }
         PaqueteTcp {
             source_port: paquete_tcp.get_source(),

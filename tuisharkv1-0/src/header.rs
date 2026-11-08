@@ -1,6 +1,7 @@
 use crate::packet::OperacionArp::self;
 use crate::packet::Paquete;
 use crate::packet::PaqueteArp;
+use crate::packet::PaqueteEthernet;
 use crate::packet::PaqueteUdp;
 use crate::packet::PaqueteIcmp;
 use crate::packet::PaqueteTcp; 
@@ -65,6 +66,54 @@ impl Cabecera {
             desplegada : false,
         }
     }
+
+    fn construir_cabecera_ipv4(paquete: &Paquete) -> Cabecera {
+        let titulo_cabecera_ipv4 : String = format!("Internet Protocol Version 4, Src: {}, Dst: {}", paquete.source, paquete.destination);
+        let mut campos : Vec<String> = Vec::new();
+        //TEMPORAL
+        for i in 0..16 {
+            campos.push("prueba".to_string());
+        }
+        Cabecera {
+            titulo : titulo_cabecera_ipv4,
+            campos : campos,
+            desplegada : false,
+        }
+    }
+
+    fn construir_cabecera_icmp(paquete: &PaqueteIcmp) -> Cabecera {
+        let titulo_cabecera_icmp : String = format!("Internet Control Message Protocol");
+        let mut campos : Vec<String> = Vec::new();
+        //TEMPORAL
+        for i in 0..16 {
+            campos.push("prueba".to_string());
+        }
+        Cabecera {
+            titulo : titulo_cabecera_icmp,
+            campos : campos,
+            desplegada : false,
+        }
+    }
+
+    pub fn construir_titulo_tcp(paquete_tcp: &PaqueteTcp) -> String{ // funcion muy tonta, pero es necesaria para escalarla despues
+        format!("Transmission Control Protocol, Src Port: {}, Dst Port {}, {:?}", paquete_tcp.source_port, paquete_tcp.destination_port, paquete_tcp.flags)
+    }
+
+    pub fn construir_cabecera_tcp(paquete_tcp: &PaqueteTcp) -> Cabecera {
+        let titulo_cabecera_icmp : String = Self::construir_titulo_tcp(paquete_tcp);
+        let mut campos : Vec<String> = Vec::new();
+        //TEMPORAL
+        for i in 0..16 {
+            campos.push("prueba".to_string());
+        }
+        Cabecera {
+            titulo : titulo_cabecera_icmp,
+            campos : campos,
+            desplegada : false,
+        }
+    }
+
+
 }
 
 #[derive(PartialEq)]
@@ -83,17 +132,21 @@ impl CabecerasDePaquete {
             TipoPaquete::Arp(datos_arp) => {
                 elementos.push(Cabecera::construir_cabecera_arp( datos_arp));
             },
-            /*
+            
             TipoPaquete::Icmp(datos_icmp) => {
-                Self::construir_cabecera_icmp(paquete, &mut elementos, datos_icmp);
+                elementos.push(Cabecera::construir_cabecera_ipv4(paquete));
+                elementos.push(Cabecera::construir_cabecera_icmp(datos_icmp));
             }
+            
             TipoPaquete::Tcp(datos_tcp) => {
-                Self::construir_cabecera_tcp(paquete, &mut elementos, datos_tcp);
+                elementos.push(Cabecera::construir_cabecera_ipv4(paquete));
+                elementos.push(Cabecera::construir_cabecera_tcp(datos_tcp));
             }
+            /*
             TipoPaquete::Udp(datos_udp) => {
                 Self::construir_cabecera_udp(paquete, &mut elementos, datos_udp);
             }
-            */
+             */
             _ => {}
         }
         CabecerasDePaquete { 
