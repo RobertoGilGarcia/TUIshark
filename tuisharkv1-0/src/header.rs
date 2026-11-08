@@ -18,6 +18,10 @@ impl Cabecera {
         self.desplegada = true;
     }
 
+    fn esconder_cabecera(&mut self) {
+        self.desplegada = false;
+    }
+
     fn construir_cabecera_frame(paquete: &Paquete) -> Cabecera {
         let titulo_cabecera_frame: String = format!("Frame {}: Packet, {} bytes on wire ({} bits), {} bytes captured ({} bits)", paquete.num, paquete.length, paquete.length*8, paquete.length, paquete.length*8);
         let mut campos: Vec<String> = Vec::new();
