@@ -100,14 +100,42 @@ impl Cabecera {
     }
 
     pub fn construir_cabecera_tcp(paquete_tcp: &PaqueteTcp) -> Cabecera {
-        let titulo_cabecera_icmp : String = Self::construir_titulo_tcp(paquete_tcp);
+        let titulo_cabecera_tcp : String = Self::construir_titulo_tcp(paquete_tcp);
         let mut campos : Vec<String> = Vec::new();
         //TEMPORAL
         for i in 0..16 {
             campos.push("prueba".to_string());
         }
         Cabecera {
-            titulo : titulo_cabecera_icmp,
+            titulo : titulo_cabecera_tcp,
+            campos : campos,
+            desplegada : false,
+        }
+    }
+
+    pub fn construir_cabecera_udp(paquete_udp: &PaqueteUdp) -> Cabecera {
+        let titulo_cabecera_udp = format!("User Datagram Protocol, Src port: {}, Dst Port: {}", paquete_udp.source_port, paquete_udp.destination_port);
+        let mut campos : Vec<String> = Vec::new();
+        //TEMPORAL
+        for i in 0..16 {
+            campos.push("prueba".to_string());
+        }
+        Cabecera {
+            titulo : titulo_cabecera_udp,
+            campos : campos,
+            desplegada : false,
+        }
+    }
+
+        pub fn construir_cabecera_data_udp(paquete_udp: &PaqueteUdp) -> Cabecera {
+        let titulo_cabecera_data_udp = format!("Data ({} bytes)", paquete_udp.data);
+        let mut campos : Vec<String> = Vec::new();
+        //TEMPORAL
+        for i in 0..16 {
+            campos.push("prueba".to_string());
+        }
+        Cabecera {
+            titulo : titulo_cabecera_data_udp,
             campos : campos,
             desplegada : false,
         }
@@ -142,11 +170,13 @@ impl CabecerasDePaquete {
                 elementos.push(Cabecera::construir_cabecera_ipv4(paquete));
                 elementos.push(Cabecera::construir_cabecera_tcp(datos_tcp));
             }
-            /*
+            
             TipoPaquete::Udp(datos_udp) => {
-                Self::construir_cabecera_udp(paquete, &mut elementos, datos_udp);
+                elementos.push(Cabecera::construir_cabecera_ipv4(paquete));
+                elementos.push(Cabecera::construir_cabecera_udp(datos_udp));
+                elementos.push(Cabecera::construir_cabecera_data_udp(datos_udp));
             }
-             */
+
             _ => {}
         }
         CabecerasDePaquete { 
