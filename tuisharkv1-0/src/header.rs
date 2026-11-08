@@ -6,6 +6,8 @@ use crate::packet::PaqueteIcmp;
 use crate::packet::PaqueteTcp; 
 use crate::packet::TipoPaquete;
 
+
+#[derive(PartialEq)]
 pub struct Cabecera {
     pub titulo : String,
     pub campos : Vec<String>,
@@ -14,12 +16,8 @@ pub struct Cabecera {
 
 impl Cabecera {
 
-    fn desplegar_cabecera(&mut self) {
-        self.desplegada = true;
-    }
-
-    fn esconder_cabecera(&mut self) {
-        self.desplegada = false;
+    pub fn alternar_despliegue(&mut self) {
+        self.desplegada != self.desplegada;
     }
 
     fn construir_cabecera_frame(paquete: &Paquete) -> Cabecera {
@@ -69,6 +67,7 @@ impl Cabecera {
     }
 }
 
+#[derive(PartialEq)]
 pub struct CabecerasDePaquete{
     pub elementos : Vec<Cabecera>,
 }
@@ -100,19 +99,5 @@ impl CabecerasDePaquete {
         CabecerasDePaquete { 
             elementos,
         }
-    }
-
-    pub fn obtener_lineas(&self) -> Vec<String> {
-        let mut lineas : Vec<String> = Vec::new();
-        for cabecera in &self.elementos {
-            let simbolo: &str = if cabecera.desplegada {"▼"} else {"▶"};
-            lineas.push(format!("{} {}", simbolo, cabecera.titulo));
-            if cabecera.desplegada {
-                for campo in &cabecera.campos {
-                    lineas.push(format!("\t{}", campo));
-                }
-            }
-        }
-        lineas
     }
 }

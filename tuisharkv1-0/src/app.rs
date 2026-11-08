@@ -1,5 +1,6 @@
 use std::io;
 
+use crate::header::CabecerasDePaquete;
 use crate::packet::Paquete;
 use crate::ui::Regiones;
 
@@ -13,13 +14,14 @@ use ratatui::Frame;
 use ratatui::widgets::ListState;
 use ratatui::widgets::TableState;
 
-#[derive(Debug, Default)] // definimos nuesta app, variable de control para salir si pulso 'q'
+#[derive(Default)] // definimos nuesta app, variable de control para salir si pulso 'q'
 pub struct App {
     pub exit: bool,
     pub paquetes : Vec<Paquete>,
     pub region_actual : Regiones,
     pub estado_tabla_paquetes : TableState,
     pub estado_lista_cabeceras : ListState,
+    pub cabeceras_de_paquete_seleccionado : Option<CabecerasDePaquete>,
 }
 
 impl App { // implementar rasgos
@@ -30,6 +32,7 @@ impl App { // implementar rasgos
             region_actual : Regiones::default(), // por defecto es la region de paquetes
             estado_tabla_paquetes : TableState::default(), // por defecto el seleccionado es None
             estado_lista_cabeceras : ListState::default(), // por defecto el seleccionado es None
+            cabeceras_de_paquete_seleccionado : None,
         }
     }
     pub fn run(&mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
@@ -54,10 +57,13 @@ impl App { // implementar rasgos
         }
         let siguiente: usize = match self.estado_tabla_paquetes.selected() {
             None => 0,
-            Some(indice) if indice <= self.paquetes.len() => indice + 1, // si no es el final
+            Some(indice) if indice + 1 < self.paquetes.len() => indice + 1,
             Some(indice) => indice,
         };
-        self.estado_tabla_paquetes.select(Some(siguiente))
+        if self.estado_tabla_paquetes.selected() != Some(siguiente) {
+            self.estado_tabla_paquetes.select(Some(siguiente));
+            self.actualizar_cabeceras_de_paquete_seleccionado();
+        }
     }
 
     pub fn up_paquetes(&mut self) {
@@ -69,13 +75,58 @@ impl App { // implementar rasgos
             Some(indice) if indice == 0 => indice,
             Some(indice) => indice - 1,
         };
-        self.estado_tabla_paquetes.select(Some(siguiente));
+        if self.estado_tabla_paquetes.selected() != Some(siguiente) {
+            self.estado_tabla_paquetes.select(Some(siguiente));
+            self.actualizar_cabeceras_de_paquete_seleccionado();
+        }
     }
 
     pub fn cambiar_region(&mut self) {
         self.region_actual = match self.region_actual {
             Regiones::Paquetes => Regiones::Cabeceras,
             Regiones::Cabeceras => Regiones::Paquetes,
+        }
+    }
+
+    pub fn actualizar_cabeceras_de_paquete_seleccionado(&mut self) {
+        if let Some(indice) = self.estado_tabla_paquetes.selected() {
+            if let Some(paquete) = self.paquetes.get(indice) {
+                self.cabeceras_de_paquete_seleccionado = Some(CabecerasDePaquete::new(paquete));
+                self.estado_lista_cabeceras.select(Some(0));
+            }
+        }
+    }
+
+    pub fn up_cabeceras(&mut self) {
+        if self.cabeceras_de_paquete_seleccionado == None {
+            return;
+        }
+        if let Some(cabeceras_seleccionadas) = &self.cabeceras_de_paquete_seleccionado {
+            let total = cabeceras_seleccionadas.elementos.len();
+            if total == 0 {
+                return;
+            }
+            let siguiente = match self.estado_lista_cabeceras.selected() {
+                None => 0,
+                Some(0) => 0,
+                Some(indice) => indice - 1,
+            };
+            self.estado_lista_cabeceras.select(Some(siguiente));
+        }
+    }
+
+    pub fn down_cabeceras(&mut self) {
+        if let Some(cabeceras_seleccionadas) = &self.cabeceras_de_paquete_seleccionado {
+            let total = cabeceras_seleccionadas.elementos.len();
+            if total == 0 {
+                return;
+            }
+            let siguiente = match self.estado_lista_cabeceras.selected() {
+                None => 0,
+                Some(indice) if indice + 1 < total => indice + 1,
+                Some(indice) => indice  
+            };
+            self.estado_lista_cabeceras.select(Some(siguiente));
         }
     }
 
@@ -86,13 +137,13 @@ impl App { // implementar rasgos
             KeyCode::Down => {
                 match self.region_actual {
                     Regiones::Paquetes => {self.down_paquetes();}
-                    Regiones::Cabeceras => {/* nada de momento */}
+                    Regiones::Cabeceras => {self.down_cabeceras();}
                 }
             }
             KeyCode::Up => {
                 match self.region_actual {
                     Regiones::Paquetes => {self.up_paquetes();}
-                    Regiones::Cabeceras => {/* nada de momento */}
+                    Regiones::Cabeceras => {self.up_cabeceras();}
                 }
             }
             _ => { /* para cualquier otra tecla no hacemos nada */}

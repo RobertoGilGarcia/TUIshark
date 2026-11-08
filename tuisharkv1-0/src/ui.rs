@@ -7,10 +7,12 @@ use ratatui::style::Style;
 use ratatui::widgets::Block;
 use ratatui::widgets::Cell;
 use ratatui::widgets::List;
+use ratatui::widgets::ListItem;
 use ratatui::widgets::Row;
 use ratatui::widgets::StatefulWidget;
 use ratatui::widgets::Table;
 use ratatui::widgets::Widget;
+use ratatui::text::Text;
 
 
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
@@ -29,6 +31,22 @@ pub enum Regiones {
 }
 
 impl App {
+    pub fn obtener_lista_cabeceras(cabeceras : &CabecerasDePaquete) -> List<'static> {
+        let mut items_lista: Vec<ListItem> = Vec::new();
+        for cabecera in &cabeceras.elementos {
+            let simbolo: &str = if cabecera.desplegada {"▼"} else {"▶"};
+            let mut lineas_para_cabecera = Vec::new();
+            lineas_para_cabecera.push(format!("{} {}", simbolo, cabecera.titulo));
+            if cabecera.desplegada {
+                for campo in &cabecera.campos {
+                    lineas_para_cabecera.push(format!("   {}", campo));
+                }
+            }
+            items_lista.push(ListItem::new(Text::from(lineas_para_cabecera.join("\n"))));
+        }
+        return List::new(items_lista);
+    }
+
     pub fn dibujar_paquetes(&mut self, area_bloque: Rect , buf:&mut Buffer) {
         let banner = Row::new(vec![
             "No.",
@@ -73,8 +91,9 @@ impl App {
         if let Some(indice_paquete_seleccionado) = self.estado_tabla_paquetes.selected() {
             let paquete_seleccionado = &self.paquetes[indice_paquete_seleccionado];
             let cabeceras_paquete: CabecerasDePaquete = CabecerasDePaquete::new(&paquete_seleccionado);
-            let lista = List::new(CabecerasDePaquete::obtener_lineas(&cabeceras_paquete));
-            StatefulWidget::render(lista, area_bloque, buf, &mut self.estado_lista_cabeceras);
+            let lista_cabeceras = Self::obtener_lista_cabeceras(&cabeceras_paquete);
+            let lista_cabeceras = lista_cabeceras.highlight_style(Style::default().bg(Color::Blue).fg(Color::White));
+            StatefulWidget::render(lista_cabeceras, area_bloque, buf, &mut self.estado_lista_cabeceras);
         }
     }
 
