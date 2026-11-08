@@ -3,10 +3,15 @@ use std::io;
 use crate::packet::Paquete;
 use crate::ui::Regiones;
 
-use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
-use ratatui::{
-    DefaultTerminal, Frame, widgets::{ListState, TableState}
-};
+use crossterm::event::self;
+use crossterm::event::Event;
+use crossterm::event::KeyCode;
+use crossterm::event::KeyEvent;
+use crossterm::event::KeyEventKind;
+use ratatui::DefaultTerminal;
+use ratatui::Frame;
+use ratatui::widgets::ListState;
+use ratatui::widgets::TableState;
 
 #[derive(Debug, Default)] // definimos nuesta app, variable de control para salir si pulso 'q'
 pub struct App {

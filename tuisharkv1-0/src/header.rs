@@ -1,4 +1,10 @@
-use crate::packet::{OperacionArp::self, Paquete, PaqueteArp, PaqueteUdp, PaqueteIcmp, PaqueteTcp, TipoPaquete};
+use crate::packet::OperacionArp::self;
+use crate::packet::Paquete;
+use crate::packet::PaqueteArp;
+use crate::packet::PaqueteUdp;
+use crate::packet::PaqueteIcmp;
+use crate::packet::PaqueteTcp; 
+use crate::packet::TipoPaquete;
 
 pub struct Cabecera {
     pub titulo : String,
@@ -7,40 +13,74 @@ pub struct Cabecera {
 }
 
 impl Cabecera {
-    fn new(paquete : &Paquete)  -> Cabecera{
-        let titulo: String = Self::construir_titulo_cabecera(paquete);
-        let campos : Vec<String> = Self::construir_campos_cabecera(paquete);
+
+    fn desplegar_cabecera(&mut self) {
+        self.desplegada = true;
+    }
+
+    fn construir_cabecera_frame(paquete: &Paquete) -> Cabecera {
+        let titulo_cabecera_frame: String = format!("Frame {}: Packet, {} bytes on wire ({} bits), {} bytes captured ({} bits)", paquete.num, paquete.length, paquete.length*8, paquete.length, paquete.length*8);
+        let mut campos: Vec<String> = Vec::new();
+        //TEMPORAL
+        for i in 0..16 {
+            campos.push("prueba".to_string());
+        }
         Cabecera {
-            titulo : titulo,
+            titulo : titulo_cabecera_frame,
             campos : campos,
             desplegada : false,
         }
     }
 
-    fn construir_titulo_cabecera(paquete: &Paquete) -> String {
-        format!("Frame {}: Packet, {} bytes on wire ({} bits), {} bytes captured ({} bits)", paquete.num, paquete.length, paquete.length*8, paquete.length, paquete.length*8)
+    fn construir_cabecera_ethernet(paquete: &Paquete) -> Cabecera {
+        let titulo_cabecera_ethernet : String = format!("Ethernet II, Src: {} ({}), Dst: {} ({})", paquete.source, paquete.source, paquete.destination, paquete.destination);
+        let mut campos : Vec<String> = Vec::new();
+        //TEMPORAL
+        for i in 0..16 {
+            campos.push("prueba".to_string());
+        }
+        Cabecera {
+            titulo : titulo_cabecera_ethernet,
+            campos : campos,
+            desplegada : false,
+        }
     }
 
-    fn construir_campos_cabecera(paquete: &Paquete) -> Vec<String> {
-
+    fn construir_cabecera_arp(paquete: &PaqueteArp) -> Cabecera{
+        let titulo_cabecera_arp : String = match paquete.operacion {
+            OperacionArp::Desconocido => format!("Address Resolution Protocol (unknown)"),
+            OperacionArp::Reply => format!("Address Resolution Protocol (reply)"),
+            OperacionArp::Request => format!("Address Resolution Protocol (request)"),
+        };
+        let mut campos : Vec<String> = Vec::new();
+        //TEMPORAL
+        for i in 0..16 {
+            campos.push("prueba".to_string());
+        }
+        Cabecera {
+            titulo : titulo_cabecera_arp,
+            campos : campos,
+            desplegada : false,
+        }
     }
 }
 
-pub struct Cabeceras{
+pub struct CabecerasDePaquete{
     pub elementos : Vec<Cabecera>,
 }
 
-impl Cabeceras {
-    pub fn new(paquete: &Paquete) -> Cabeceras{
+impl CabecerasDePaquete {
+    pub fn new(paquete: &Paquete) -> CabecerasDePaquete{
         let mut elementos :Vec<Cabecera> = Vec::new();
-        let numero_paquete: &String = &paquete.num;
-        let longitud_paquete: &usize = &paquete.length;
-        let cabecera_frame: Cabecera = Cabecera::new(paquete);
+        let cabecera_frame: Cabecera = Cabecera::construir_cabecera_frame(paquete);
+        let cabecera_ethernet: Cabecera = Cabecera::construir_cabecera_ethernet(paquete); 
         elementos.push(cabecera_frame);
+        elementos.push(cabecera_ethernet);
         match &paquete.tipo {
             TipoPaquete::Arp(datos_arp) => {
-                Self::construir_cabecera_arp(paquete, &mut elementos, datos_arp);
+                elementos.push(Cabecera::construir_cabecera_arp( datos_arp));
             },
+            /*
             TipoPaquete::Icmp(datos_icmp) => {
                 Self::construir_cabecera_icmp(paquete, &mut elementos, datos_icmp);
             }
@@ -50,40 +90,25 @@ impl Cabeceras {
             TipoPaquete::Udp(datos_udp) => {
                 Self::construir_cabecera_udp(paquete, &mut elementos, datos_udp);
             }
+            */
             _ => {}
         }
-        Cabeceras { 
+        CabecerasDePaquete { 
             elementos,
         }
     }
 
-    pub fn construir_cabecera_udp(paquete: &Paquete, elementos: &mut Vec<String>, datos_udp: &PaqueteUdp) {
-        elementos.push(format!("Internet Protocol Version 4, Src: {}, Dst {}", paquete.source, paquete.destination));
-        elementos.push(format!("User Datagram Protocol, Src Port: {}, Dst Port: {}", datos_udp.source_port, datos_udp.destination_port));
-        elementos.push(format!("Data ({} bytes)", datos_udp.data));
-    }
-
-    pub fn construir_cabecera_tcp(paquete: &Paquete, elementos: &mut Vec<String>, datos_tcp: &PaqueteTcp) {
-        elementos.push(format!("Internet Protocol Version 4, Src: {}, Dst {}", paquete.source, paquete.destination));
-        elementos.push(format!("Transmission Control Protocol, Src Port: {}, Dst Port; {}, Seq: {}", datos_tcp.source_port, datos_tcp.destination_port, datos_tcp.sequence));
-    }
-
-    pub fn construir_cabecera_icmp(paquete: &Paquete, elementos: &mut Vec<String>, datos_icmp: &PaqueteIcmp) {
-        elementos.push(format!("Internet Protocol Version 4, Src: {}, Dst {}", paquete.source, paquete.destination));
-        elementos.push(format!("Internet Control Message Protocol"));
-    }
-
-    pub fn construir_cabecera_arp(paquete: &Paquete, elementos: &mut Vec<String>, datos_arp: &PaqueteArp) {
-        let destino: &str = match paquete.destination.as_str() {
-            "ff:ff:ff:ff:ff:ff" => {"Broadcast"},
-            _ => {paquete.destination.as_str()},
-        };
-        elementos.push(format!("Ethernet II, Src: {} ({}), Dst: {} ({})", paquete.source, paquete.source, destino, paquete.destination));
-        let operacion = match datos_arp.operacion {
-            OperacionArp::Desconocido => {"Desconocido"},
-            OperacionArp::Reply => {"reply"},
-            OperacionArp::Request => {"request"},
-        };
-        elementos.push(format!("Address Resolution Protocol ({})", operacion));
+    pub fn obtener_lineas(&self) -> Vec<String> {
+        let mut lineas : Vec<String> = Vec::new();
+        for cabecera in &self.elementos {
+            let simbolo: &str = if cabecera.desplegada {"▼"} else {"▶"};
+            lineas.push(format!("{} {}", simbolo, cabecera.titulo));
+            if cabecera.desplegada {
+                for campo in &cabecera.campos {
+                    lineas.push(format!("\t{}", campo));
+                }
+            }
+        }
+        lineas
     }
 }

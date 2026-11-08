@@ -1,12 +1,21 @@
 use std::rc::Rc;
 
-use ratatui::{
-    buffer::Buffer, style::{Color, Style}, widgets::{Block, Cell, List, Row, StatefulWidget, Table, Widget},
-};
+
+use ratatui::buffer::Buffer;
+use ratatui::style::Color; 
+use ratatui::style::Style;
+use ratatui::widgets::Block;
+use ratatui::widgets::Cell;
+use ratatui::widgets::List;
+use ratatui::widgets::Row;
+use ratatui::widgets::StatefulWidget;
+use ratatui::widgets::Table;
+use ratatui::widgets::Widget;
+
 
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 
-use crate::header::Cabeceras;
+use crate::header::CabecerasDePaquete;
 use crate::app::App;
 
 const REGION_PAQUETES : Regiones = Regiones::Paquetes;
@@ -63,8 +72,8 @@ impl App {
     pub fn dibujar_cabeceras(&mut self, area_bloque: Rect, buf: &mut Buffer) {
         if let Some(indice_paquete_seleccionado) = self.estado_tabla_paquetes.selected() {
             let paquete_seleccionado = &self.paquetes[indice_paquete_seleccionado];
-            let cabeceras_paquete = Cabeceras::new(&paquete_seleccionado);
-            let lista = List::new(cabeceras_paquete.elementos);
+            let cabeceras_paquete: CabecerasDePaquete = CabecerasDePaquete::new(&paquete_seleccionado);
+            let lista = List::new(CabecerasDePaquete::obtener_lineas(&cabeceras_paquete));
             StatefulWidget::render(lista, area_bloque, buf, &mut self.estado_lista_cabeceras);
         }
     }
