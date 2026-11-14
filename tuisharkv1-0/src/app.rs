@@ -1,6 +1,7 @@
 use std::io;
 
 use crate::header::CabecerasDePaquete;
+use crate::header::ElementosCabecera;
 use crate::packet::Paquete;
 use crate::ui::Regiones;
 
@@ -98,12 +99,12 @@ impl App { // implementar rasgos
         }
     }
 
-    pub fn up_cabeceras(&mut self) {
+    pub fn up_cabeceras_y_campos_de_cabeceras(&mut self) {
         if self.cabeceras_de_paquete_seleccionado == None {
             return;
         }
         if let Some(cabeceras_seleccionadas) = &self.cabeceras_de_paquete_seleccionado {
-            let total = cabeceras_seleccionadas.elementos.len();
+            let total = cabeceras_seleccionadas.elementos_visibles().len();
             if total == 0 {
                 return;
             }
@@ -116,9 +117,9 @@ impl App { // implementar rasgos
         }
     }
 
-    pub fn down_cabeceras(&mut self) {
+    pub fn down_cabeceras_y_campos_de_cabeceras(&mut self) {
         if let Some(cabeceras_seleccionadas) = &self.cabeceras_de_paquete_seleccionado {
-            let total = cabeceras_seleccionadas.elementos.len();
+            let total = cabeceras_seleccionadas.elementos_visibles().len();
             if total == 0 {
                 return;
             }
@@ -131,11 +132,14 @@ impl App { // implementar rasgos
         }
     }
 
-    pub fn alternar_cabecera(&mut self) {
+    pub fn alternar_despliegue_cabecera(&mut self) {
         if let Some(cabeceras) = &mut self.cabeceras_de_paquete_seleccionado {
-            if let Some(indice) = self.estado_lista_cabeceras.selected() {
-                if let Some(cabecera) = cabeceras.elementos.get_mut(indice) {
-                    cabecera.desplegada = !cabecera.desplegada;
+            let elementos_visibles:Vec<ElementosCabecera> = cabeceras.elementos_visibles();
+            if let Some(indice_cabecera_seleccionada) = self.estado_lista_cabeceras.selected() {
+                if let Some(ElementosCabecera::Titulo(indice_titulo)) = elementos_visibles.get(indice_cabecera_seleccionada) { //comprueba que sea un ElementosCabecera::Titulo() y no un Campos
+                    if let Some(cabecera) = cabeceras.elementos.get_mut(*indice_titulo) {
+                        cabecera.desplegada = !cabecera.desplegada;
+                    }
                 }
             }
         }
@@ -148,19 +152,19 @@ impl App { // implementar rasgos
             KeyCode::Down => {
                 match self.region_actual {
                     Regiones::Paquetes => {self.down_paquetes();}
-                    Regiones::Cabeceras => {self.down_cabeceras();}
+                    Regiones::Cabeceras => {self.down_cabeceras_y_campos_de_cabeceras();}
                 }
             }
             KeyCode::Up => {
                 match self.region_actual {
                     Regiones::Paquetes => {self.up_paquetes();}
-                    Regiones::Cabeceras => {self.up_cabeceras();}
+                    Regiones::Cabeceras => {self.up_cabeceras_y_campos_de_cabeceras();}
                 }
             }
             KeyCode::Enter => {
                 match self.region_actual {
                     Regiones::Paquetes => {/* no hacemos nada */}
-                    Regiones::Cabeceras => {self.alternar_cabecera();}
+                    Regiones::Cabeceras => {self.alternar_despliegue_cabecera();}
                 }
             }
             _ => { /* para cualquier otra tecla no hacemos nada */}

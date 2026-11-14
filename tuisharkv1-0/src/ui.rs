@@ -1,6 +1,5 @@
 use std::rc::Rc;
 
-
 use crossterm::terminal::ClearType::All;
 use ratatui::buffer::Buffer;
 use ratatui::style::Color; 
@@ -15,11 +14,11 @@ use ratatui::widgets::Table;
 use ratatui::widgets::Widget;
 use ratatui::text::Text;
 
-
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 
 use crate::header::CabecerasDePaquete;
 use crate::app::App;
+use crate::header::ElementosCabecera;
 
 const REGION_PAQUETES : Regiones = Regiones::Paquetes;
 const REGION_CABECERAS : Regiones = Regiones::Cabeceras;
@@ -34,16 +33,19 @@ pub enum Regiones {
 impl App {
     pub fn obtener_lista_cabeceras_visibles(cabeceras : &CabecerasDePaquete) -> List<'static> {
         let mut items_lista: Vec<ListItem> = Vec::new();
-        for elemento_cabecera in &cabeceras.elementos_visibles() {
-            let simbolo: &str = if cabecera.desplegada {"▼"} else {"▶"};
-            let mut lineas_para_cabecera = Vec::new();
-            lineas_para_cabecera.push(format!("{} {}", simbolo, cabecera.titulo));
-            if cabecera.desplegada {
-                for campo in cabecera.campos.iter().take(14) {
-                    lineas_para_cabecera.push(format!("   {}", campo));
+        for elemento_cabecera in cabeceras.elementos_visibles() {
+            let texto_visible = match elemento_cabecera {
+                ElementosCabecera::Titulo(indice_titulo) => {
+                    let cabecera_visible = &cabeceras.elementos[indice_titulo];
+                    let simbolo: &str = if cabecera_visible.desplegada {"▼"} else {"▶"};
+                    format!("{} {}", simbolo, cabecera_visible.titulo)
                 }
-            }
-            items_lista.push(ListItem::new(Text::from(lineas_para_cabecera.join("\n"))));
+                ElementosCabecera::Campos(indice_cabecera, indice_campo ) => {
+                    let campo_visible = &cabeceras.elementos[indice_cabecera].campos[indice_campo];
+                    format!("   {}", campo_visible)
+                }
+            };
+            items_lista.push(ListItem::new(texto_visible));
         }
         return List::new(items_lista);
     }
@@ -90,7 +92,7 @@ impl App {
 
     pub fn dibujar_cabeceras(&mut self, area_bloque: Rect, buf: &mut Buffer) {
         if let Some(cabeceras) = &self.cabeceras_de_paquete_seleccionado {
-            let mut lista_cabeceras = Self::obtener_lista_cabeceras(cabeceras);
+            let mut lista_cabeceras = Self::obtener_lista_cabeceras_visibles(cabeceras);
             lista_cabeceras = lista_cabeceras.highlight_style(Style::default().bg(Color::Blue).fg(Color::White));
             StatefulWidget::render(lista_cabeceras, area_bloque, buf, &mut self.estado_lista_cabeceras);
         }
