@@ -1,0 +1,13 @@
+protocolos:
+  ARP:
+    color_letra: black
+    color_fondo: yellow
+  ICMP:
+    color_letra: green
+    color_fondo: black
+  TCP:
+    color_letra: black
+    color_fondo: green
+  UDP:
+    color_letra: white
+    color_fondo: red

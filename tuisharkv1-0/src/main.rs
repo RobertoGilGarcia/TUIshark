@@ -2,6 +2,7 @@ mod app;
 mod ui;
 mod packet;
 mod header;
+mod config;
 use crate::app::App;
 use crate::packet::Paquete;
 

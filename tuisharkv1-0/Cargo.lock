@@ -1252,6 +1252,7 @@ dependencies = [
  "pcap",
  "pnet",
  "ratatui 0.30.2",
+ "serde",
 ]
 
 [[package]]
