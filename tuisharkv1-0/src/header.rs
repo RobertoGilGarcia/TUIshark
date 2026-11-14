@@ -7,6 +7,10 @@ use crate::packet::PaqueteIcmp;
 use crate::packet::PaqueteTcp; 
 use crate::packet::TipoPaquete;
 
+pub enum ElementosCabecera {
+    Titulo(usize), //titulo de la cabecera x seleccionada
+    Campos(usize, usize), // campos x de la cabecera y seleccionada
+}
 
 #[derive(PartialEq)]
 pub struct Cabecera {
@@ -151,36 +155,50 @@ pub struct CabecerasDePaquete{
 
 impl CabecerasDePaquete {
     pub fn new(paquete: &Paquete) -> CabecerasDePaquete{
-        let mut elementos :Vec<Cabecera> = Vec::new();
+        let mut cabeceras: Vec<Cabecera> = Vec::new();
         let cabecera_frame: Cabecera = Cabecera::construir_cabecera_frame(paquete);
         let cabecera_ethernet: Cabecera = Cabecera::construir_cabecera_ethernet(paquete); 
-        elementos.push(cabecera_frame);
-        elementos.push(cabecera_ethernet);
+        cabeceras.push(cabecera_frame);
+        cabeceras.push(cabecera_ethernet);
         match &paquete.tipo {
             TipoPaquete::Arp(datos_arp) => {
-                elementos.push(Cabecera::construir_cabecera_arp( datos_arp));
+                cabeceras.push(Cabecera::construir_cabecera_arp( datos_arp));
             },
             
             TipoPaquete::Icmp(datos_icmp) => {
-                elementos.push(Cabecera::construir_cabecera_ipv4(paquete));
-                elementos.push(Cabecera::construir_cabecera_icmp(datos_icmp));
+                cabeceras.push(Cabecera::construir_cabecera_ipv4(paquete));
+                cabeceras.push(Cabecera::construir_cabecera_icmp(datos_icmp));
             }
             
             TipoPaquete::Tcp(datos_tcp) => {
-                elementos.push(Cabecera::construir_cabecera_ipv4(paquete));
-                elementos.push(Cabecera::construir_cabecera_tcp(datos_tcp));
+                cabeceras.push(Cabecera::construir_cabecera_ipv4(paquete));
+                cabeceras.push(Cabecera::construir_cabecera_tcp(datos_tcp));
             }
             
             TipoPaquete::Udp(datos_udp) => {
-                elementos.push(Cabecera::construir_cabecera_ipv4(paquete));
-                elementos.push(Cabecera::construir_cabecera_udp(datos_udp));
-                elementos.push(Cabecera::construir_cabecera_data_udp(datos_udp));
+                cabeceras.push(Cabecera::construir_cabecera_ipv4(paquete));
+                cabeceras.push(Cabecera::construir_cabecera_udp(datos_udp));
+                cabeceras.push(Cabecera::construir_cabecera_data_udp(datos_udp));
             }
 
             _ => {}
         }
         CabecerasDePaquete { 
-            elementos,
+            elementos : cabeceras,
         }
+    }
+
+    pub fn elementos_visibles(&self) -> Vec<ElementosCabecera> {
+        let mut elementos_visibles : Vec<ElementosCabecera> = Vec::new();
+        for (indice_titulo_cabecera, cabecera) in self.elementos.iter().enumerate() {
+            elementos_visibles.push(ElementosCabecera::Titulo(indice_titulo_cabecera));
+
+            if cabecera.desplegada {
+                for indice_campo in 0..cabecera.campos.len() {
+                    elementos_visibles.push(ElementosCabecera::Campos(indice_titulo_cabecera, indice_campo));
+                }
+            }
+        }
+        elementos_visibles
     }
 }

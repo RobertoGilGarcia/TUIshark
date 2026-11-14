@@ -1,6 +1,7 @@
 use std::rc::Rc;
 
 
+use crossterm::terminal::ClearType::All;
 use ratatui::buffer::Buffer;
 use ratatui::style::Color; 
 use ratatui::style::Style;
@@ -31,14 +32,14 @@ pub enum Regiones {
 }
 
 impl App {
-    pub fn obtener_lista_cabeceras(cabeceras : &CabecerasDePaquete) -> List<'static> {
+    pub fn obtener_lista_cabeceras_visibles(cabeceras : &CabecerasDePaquete) -> List<'static> {
         let mut items_lista: Vec<ListItem> = Vec::new();
-        for cabecera in &cabeceras.elementos {
+        for elemento_cabecera in &cabeceras.elementos_visibles() {
             let simbolo: &str = if cabecera.desplegada {"▼"} else {"▶"};
             let mut lineas_para_cabecera = Vec::new();
             lineas_para_cabecera.push(format!("{} {}", simbolo, cabecera.titulo));
             if cabecera.desplegada {
-                for campo in &cabecera.campos {
+                for campo in cabecera.campos.iter().take(14) {
                     lineas_para_cabecera.push(format!("   {}", campo));
                 }
             }
@@ -88,11 +89,9 @@ impl App {
     }
 
     pub fn dibujar_cabeceras(&mut self, area_bloque: Rect, buf: &mut Buffer) {
-        if let Some(indice_paquete_seleccionado) = self.estado_tabla_paquetes.selected() {
-            let paquete_seleccionado = &self.paquetes[indice_paquete_seleccionado];
-            let cabeceras_paquete: CabecerasDePaquete = CabecerasDePaquete::new(&paquete_seleccionado);
-            let lista_cabeceras = Self::obtener_lista_cabeceras(&cabeceras_paquete);
-            let lista_cabeceras = lista_cabeceras.highlight_style(Style::default().bg(Color::Blue).fg(Color::White));
+        if let Some(cabeceras) = &self.cabeceras_de_paquete_seleccionado {
+            let mut lista_cabeceras = Self::obtener_lista_cabeceras(cabeceras);
+            lista_cabeceras = lista_cabeceras.highlight_style(Style::default().bg(Color::Blue).fg(Color::White));
             StatefulWidget::render(lista_cabeceras, area_bloque, buf, &mut self.estado_lista_cabeceras);
         }
     }

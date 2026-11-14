@@ -25,7 +25,7 @@ pub struct App {
 }
 
 impl App { // implementar rasgos
-    pub fn new(paquetes: Vec<Paquete>) -> Self {
+    pub fn new(paquetes: Vec<Paquete>) -> App {
         App {
             exit : false, 
             paquetes : paquetes,
@@ -35,6 +35,7 @@ impl App { // implementar rasgos
             cabeceras_de_paquete_seleccionado : None,
         }
     }
+
     pub fn run(&mut self, terminal: &mut DefaultTerminal) -> io::Result<()> {
         while !self.exit {
             terminal.draw(|frame| self.draw(frame))?; // funcion lambda que recibe un frame, como parametro se llama a draw() para crear el frame
@@ -130,6 +131,16 @@ impl App { // implementar rasgos
         }
     }
 
+    pub fn alternar_cabecera(&mut self) {
+        if let Some(cabeceras) = &mut self.cabeceras_de_paquete_seleccionado {
+            if let Some(indice) = self.estado_lista_cabeceras.selected() {
+                if let Some(cabecera) = cabeceras.elementos.get_mut(indice) {
+                    cabecera.desplegada = !cabecera.desplegada;
+                }
+            }
+        }
+    }
+
     pub fn handle_key_event(&mut self, key_event: KeyEvent){ // KeyCode tiene sus propios metodos para gestionar diferentes teclas
         match key_event.code {
             KeyCode::Char('q') => self.exit(),
@@ -144,6 +155,12 @@ impl App { // implementar rasgos
                 match self.region_actual {
                     Regiones::Paquetes => {self.up_paquetes();}
                     Regiones::Cabeceras => {self.up_cabeceras();}
+                }
+            }
+            KeyCode::Enter => {
+                match self.region_actual {
+                    Regiones::Paquetes => {/* no hacemos nada */}
+                    Regiones::Cabeceras => {self.alternar_cabecera();}
                 }
             }
             _ => { /* para cualquier otra tecla no hacemos nada */}
